@@ -268,15 +268,24 @@ mod tests {
 
     #[test]
     fn test_compact_url_strips_protocol() {
-        assert_eq!(compact_url("https://example.com/file.zip"), "example.com/file.zip");
-        assert_eq!(compact_url("http://example.com/file.zip"), "example.com/file.zip");
+        assert_eq!(
+            compact_url("https://example.com/file.zip"),
+            "example.com/file.zip"
+        );
+        assert_eq!(
+            compact_url("http://example.com/file.zip"),
+            "example.com/file.zip"
+        );
     }
 
     #[test]
     fn test_compact_url_truncates_long_url() {
         let long = "https://example.com/very/long/path/that/exceeds/fifty/characters/file.zip";
         let result = compact_url(long);
-        assert!(result.contains("..."), "Long URL should be truncated with ...");
+        assert!(
+            result.contains("..."),
+            "Long URL should be truncated with ..."
+        );
         assert!(result.len() < long.len());
     }
 

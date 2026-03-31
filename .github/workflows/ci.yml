@@ -256,8 +256,9 @@ jobs:
 
           IMPORTANT:
           - CI/CD changes, test-only changes, and refactors with no user-facing impact do NOT require doc updates.
+          - In Rust projects, changes that only add or modify #[cfg(test)] blocks are test-only and do NOT require doc updates.
           - Be practical, not pedantic. Small obvious fixes don't need CHANGELOG entries.
-          - Only flag missing docs when there is a clear user-facing change.
+          - Only flag missing docs when there is a clear user-facing change (new command, new flag, behavior change visible to end users).
           EOF
 
           # User prompt: concatenate files (no printf, no variable expansion issues)

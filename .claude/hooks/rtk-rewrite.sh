@@ -83,24 +83,28 @@ ORIGINAL_INPUT=$(echo "$INPUT" | jq -c '.tool_input')
 UPDATED_INPUT=$(echo "$ORIGINAL_INPUT" | jq --arg cmd "$REWRITTEN" '.command = $cmd')
 
 if [ "$EXIT_CODE" -eq 3 ]; then
-  # Ask: rewrite the command, omit permissionDecision so Claude Code prompts.
+  # Ask/Default: rewrite the command, include permissionDecision "ask"
+  # so Claude Code prompts the user for confirmation.
+  # In bypassPermissions mode this is ignored (command still rewrites correctly).
   jq -n \
     --argjson updated "$UPDATED_INPUT" \
     '{
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
+        "permissionDecision": "ask",
+        "permissionDecisionReason": "RTK: no explicit allow rule",
         "updatedInput": $updated
       }
     }'
 else
-  # Allow: output the rewrite instruction in Claude Code hook format.
+  # Allow (explicit rule matched): rewrite without permissionDecision.
+  # Omitting permissionDecision = allow by default, AND works correctly
+  # in bypassPermissions mode (updatedInput is not discarded). Fixes #893.
   jq -n \
     --argjson updated "$UPDATED_INPUT" \
     '{
       "hookSpecificOutput": {
         "hookEventName": "PreToolUse",
-        "permissionDecision": "allow",
-        "permissionDecisionReason": "RTK auto-rewrite",
         "updatedInput": $updated
       }
     }'

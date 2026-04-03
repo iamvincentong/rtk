@@ -119,21 +119,25 @@ fn handle_vscode(cmd: &str) -> Result<()> {
         return Ok(());
     }
 
-    // Allow (explicit rule matched): auto-allow the rewritten command.
-    // Ask/Default (no allow rule matched): rewrite but let the host tool prompt.
-    let decision = match verdict {
-        PermissionVerdict::Allow => "allow",
-        _ => "ask",
+    // Allow (explicit rule matched): omit permissionDecision so updatedInput
+    // works in bypassPermissions mode (#893). Omitting = allow by default.
+    // Ask/Default: include permissionDecision "ask" to prompt the user.
+    let output = match verdict {
+        PermissionVerdict::Allow => json!({
+            "hookSpecificOutput": {
+                "hookEventName": PRE_TOOL_USE_KEY,
+                "updatedInput": { "command": rewritten }
+            }
+        }),
+        _ => json!({
+            "hookSpecificOutput": {
+                "hookEventName": PRE_TOOL_USE_KEY,
+                "permissionDecision": "ask",
+                "permissionDecisionReason": "RTK: no explicit allow rule",
+                "updatedInput": { "command": rewritten }
+            }
+        }),
     };
-
-    let output = json!({
-        "hookSpecificOutput": {
-            "hookEventName": PRE_TOOL_USE_KEY,
-            "permissionDecision": decision,
-            "permissionDecisionReason": "RTK auto-rewrite",
-            "updatedInput": { "command": rewritten }
-        }
-    });
     println!("{output}");
     Ok(())
 }

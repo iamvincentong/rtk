@@ -1888,6 +1888,11 @@ test result: FAILED. 0 passed; 1 failed
         );
         // Should NOT have truncation marker for single, reasonably-sized failure
         // (This tests that budget formula max(200, 3000/1) = 3000 works)
+        assert!(
+            !result.contains("[truncated"),
+            "Single failure should NOT be truncated (budget=3000), got: {}",
+            result
+        );
     }
 
     // T3: Marker presence test — [truncated appears when needed
@@ -1980,6 +1985,14 @@ test result: FAILED. 0 passed; 1 failed
         );
     }
 
+    // T5b: Panic-format extraction — thread 'name' panicked path
+    #[test]
+    fn test_extract_test_name_panic_format() {
+        let failure = "thread 'foo::test_b' panicked at 'assertion failed'\nnote: run with `RUST_BACKTRACE=1`";
+        let name = extract_test_name(failure);
+        assert_eq!(name.as_deref(), Some("foo::test_b"));
+    }
+
     // T6: Snapshot test — verify output format (insta snapshot)
     #[test]
     fn test_filter_cargo_test_output_format_snapshot() {
@@ -1996,10 +2009,8 @@ thread 'test_fail' panicked at 'assertion failed'
 test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
 "#;
         let result = filter_cargo_test(output);
-        // Basic sanity checks on format
         assert!(result.contains("FAILURES"));
         assert!(result.contains("test_fail"));
         assert!(result.contains("test result:"));
-        // This can be expanded to use assert_snapshot! once the changes are implemented
     }
 }
